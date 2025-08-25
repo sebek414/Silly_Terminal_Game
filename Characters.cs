@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace Characters{
 
-        public interface Character{
+        public interface ICharacter{
             public Stat Health{get;set;}
             public Stat Attack_Power{get;set;}
 
             public void DealDamage();
         }
 
-        public class Player : Character{
+        public class Player : ICharacter{
 
             public Stat Health{get;set;} = new Stat{Name = "health", Value = 50};
             public Stat Attack_Power{get;set;} = new Stat{Name = "atak", Value = 4};
@@ -94,7 +94,7 @@ namespace Characters{
             }
         }
 
-        public class Enemy : Character{
+        public class Enemy : ICharacter{
 
             public Stat Health{get;set;} = new Stat{Name = "enemy health", Value = 8};
             public Stat Attack_Power{get; set;} = new Stat{Name = "atak", Value = 67};
