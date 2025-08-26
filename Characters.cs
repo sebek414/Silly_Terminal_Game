@@ -10,42 +10,44 @@ using System.Threading.Tasks;
 
 namespace Characters{
 
+        /*
         public interface ICharacter{
             //public Stat Health{get;set;}
             //public Stat Attack_Power{get;set;}
 
             public int DealDamage();
         }
+        */
 
 
-        public class Player : ICharacter{
+        public class Player /*: ICharacter*/{
 
             //public Stat Health{get;set;} = new Stat{Name = "health", Value = 50};
             //public Stat Attack_Power{get;set;} = new Stat{Name = "atak", Value = 4};
 
 
 
-            public int DealDamage(){
+            public int PlayerDealDamage(){
                 int damageDealt = 10;
                 Console.WriteLine($"player deals damage: {damageDealt}");
                 return damageDealt;
             }
 
             public class OnPlayerDamagedEventArgs : EventArgs{
-                public int PreviousHealth{get;set;}
-                public int NewHealth{get;set;}
+                public int DamageRecieved{get;set;}
             }
 
             public event EventHandler<OnPlayerDamagedEventArgs> OnPlayerDamaged;
 
-            public void GetDamage(){
+            public void GetDamage(Enemy enemy){
                 if (OnPlayerDamaged != null){
                     OnPlayerDamaged(this, new OnPlayerDamagedEventArgs{
-                        PreviousHealth = 50,
-                        NewHealth = 40
+                        DamageRecieved = enemy.EnemyDealDamage()
                     });
                 }
             }
+
+
 
         }
 
@@ -67,7 +69,7 @@ namespace Characters{
 
             public PlayerStats(Player player, Stat health, Stat attack_power){
                 this.player = player;
-                this.player.OnPlayerDamaged += Player_OnPlayerDamaged1;
+                this.player.OnPlayerDamaged += Player_OnPlayerDamaged;
 
                 this.Health.Value = health.Value;
                 this.Attack_Power.Value = attack_power.Value;
@@ -79,11 +81,12 @@ namespace Characters{
 
             }
 
-            private void Player_OnPlayerDamaged1(
+            private void Player_OnPlayerDamaged(
                 object sender,
                 Player.OnPlayerDamagedEventArgs e
                 ){
-                    Console.WriteLine($"Player health ater damage: {e.NewHealth}");
+                    Health.Value = Health.Value - e.DamageRecieved;
+                    Console.WriteLine($"Recieved {e.DamageRecieved} damage!\nPlayer health ater damage: {Health.Value}");
                 }
 
             public class PlayerStatEnumerator : IEnumerator<Stat>{
@@ -128,17 +131,17 @@ namespace Characters{
             }
 
             ~PlayerStats(){
-                this.player.OnPlayerDamaged -= Player_OnPlayerDamaged1;
+                this.player.OnPlayerDamaged -= Player_OnPlayerDamaged;
             }
         }
 
 
-        public class Enemy : ICharacter{
+        public class Enemy /*: ICharacter*/{
 
             public Stat Health{get;set;} = new Stat{Name = "enemy health", Value = 8};
             public Stat Attack_Power{get; set;} = new Stat{Name = "atak", Value = 67};
 
-            public int DealDamage(){
+            public int EnemyDealDamage(){
                 int damageDealt = 10;
                 Console.WriteLine($"enemy deals damage: {damageDealt}");
                 return damageDealt;
@@ -163,6 +166,8 @@ namespace Characters{
             Wretch,
 
         }
+
+
 
 }
 

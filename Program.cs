@@ -18,14 +18,25 @@ namespace Glowna{
             Stat attackbar = new Stat{Name = "Attack", Value = 18};
 
             Player player = new Player();
+            Enemy enemy = new Enemy();
             PlayerStats playerStats = new  PlayerStats(player, healthbar, attackbar);
 
-            player.GetDamage();
 
             foreach (Stat stat in playerStats){
                 Console.WriteLine(stat.ToString());
             }
 
+            player.GetDamage(enemy);
+
+            foreach (Stat stat in playerStats){
+                Console.WriteLine(stat.ToString());
+            }
+
+            player.GetDamage(enemy);
+
+            foreach (Stat stat in playerStats){
+                Console.WriteLine(stat.ToString());
+            }
 
         }
     }
