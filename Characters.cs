@@ -7,148 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 namespace Characters{
-
-        /*
-        public interface ICharacter{
-            //public Stat Health{get;set;}
-            //public Stat Attack_Power{get;set;}
-
-            public int DealDamage();
-        }
-        */
-
-
-        public class Player /*: ICharacter*/{
-
-            //public Stat Health{get;set;} = new Stat{Name = "health", Value = 50};
-            //public Stat Attack_Power{get;set;} = new Stat{Name = "atak", Value = 4};
-
-
-
-            public int PlayerDealDamage(){
-                int damageDealt = 10;
-                Console.WriteLine($"player deals damage: {damageDealt}");
-                return damageDealt;
-            }
-
-            public class OnPlayerDamagedEventArgs : EventArgs{
-                public int DamageRecieved{get;set;}
-            }
-
-            public event EventHandler<OnPlayerDamagedEventArgs> OnPlayerDamaged;
-
-            public void GetDamage(Enemy enemy){
-                if (OnPlayerDamaged != null){
-                    OnPlayerDamaged(this, new OnPlayerDamagedEventArgs{
-                        DamageRecieved = enemy.EnemyDealDamage()
-                    });
-                }
-            }
-
-
-
-        }
-
-
-        public class PlayerStats : IEnumerable<Stat>{
-
-            private Player player;
-
-            public Stat Health {get;set;}= new Stat{Name = "Health"};
-            public Stat Attack_Power{get; set;} = new Stat{Name = "Attack Power"};
-
-            public IEnumerator<Stat> GetEnumerator(){
-                return new PlayerStatEnumerator(this);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator(){
-                return GetEnumerator();
-            }
-
-            public PlayerStats(Player player, Stat health, Stat attack_power){
-                this.player = player;
-                this.player.OnPlayerDamaged += Player_OnPlayerDamaged;
-
-                this.Health.Value = health.Value;
-                this.Attack_Power.Value = attack_power.Value;
-                this.Health.Name = health.Name;
-                this.Attack_Power.Name = attack_power.Name;
-            }
-
-            public PlayerStats(){
-
-            }
-
-            private void Player_OnPlayerDamaged(
-                object sender,
-                Player.OnPlayerDamagedEventArgs e
-                ){
-                    Health.Value = Health.Value - e.DamageRecieved;
-                    Console.WriteLine($"Recieved {e.DamageRecieved} damage!\nPlayer health ater damage: {Health.Value}");
-                }
-
-            public class PlayerStatEnumerator : IEnumerator<Stat>{
-
-                private PlayerStats playerStats;
-                private int index;
-
-                public PlayerStatEnumerator(PlayerStats playerStats){
-                    this.playerStats = playerStats;
-                    this.index = -1;
-                }
-
-                public Stat Current{
-                    get{
-                        switch(index){
-                            default:
-                            case 0: return playerStats.Health;
-                            case 1: return playerStats.Attack_Power;
-                        }
-                    }
-                }
-
-                object IEnumerator.Current => Current;
-
-                public void Dispose(){
-
-                }
-
-                public bool MoveNext(){
-                    index++;
-                    if(index > 1){
-                        index = -1;
-                    }
-                    return index != -1;
-                }
-
-                public void Reset(){
-
-                }
-
-
-            }
-
-            ~PlayerStats(){
-                this.player.OnPlayerDamaged -= Player_OnPlayerDamaged;
-            }
-        }
-
-
-        public class Enemy /*: ICharacter*/{
-
-            public Stat Health{get;set;} = new Stat{Name = "enemy health", Value = 8};
-            public Stat Attack_Power{get; set;} = new Stat{Name = "atak", Value = 67};
-
-            public int EnemyDealDamage(){
-                int damageDealt = 10;
-                Console.WriteLine($"enemy deals damage: {damageDealt}");
-                return damageDealt;
-            }
-
-        }
-
 
         public class Stat{
             public string Name{get; set;}
@@ -167,6 +26,114 @@ namespace Characters{
 
         }
 
+        public interface IDamageable<TEventArgs> where TEventArgs : EventArgs{
+            event EventHandler<TEventArgs> OnDamaged;
+        }
+
+        public class GenericStats <TCharacterType, TStat> : IEnumerable<TStat>
+        where TStat : Stat, new()
+        where TCharacterType : class, IDamageable<CharacterDamagedEventArgs>
+        {
+
+            public TCharacterType TypeCharacter{get;set;}
+            public TStat Health {get;set;}= new TStat{Name = "Health"};
+            public TStat Attack_Power{get; set;} = new TStat{Name = "Attack Power"};
+
+            public GenericStats(TCharacterType TypeCharacter){
+                this.TypeCharacter = TypeCharacter;
+                TypeCharacter.OnDamaged += Char_OnCharDamaged;
+            }
+
+
+            public IEnumerator<TStat> GetEnumerator(){
+                return new CharacterStatEnumerator(this);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator(){
+                return GetEnumerator();
+            }
+
+            private void Char_OnCharDamaged(
+                object sender,
+                CharacterDamagedEventArgs e
+            ){
+                Health.Value = Health.Value - e.DamageReceived;
+            }
+
+            public class CharacterStatEnumerator : IEnumerator<TStat>{
+
+                private GenericStats<TCharacterType, TStat> characterStats;
+                private int index;
+
+                public CharacterStatEnumerator(GenericStats<TCharacterType, TStat> characterStats){
+                    this.characterStats = characterStats;
+                    this.index = -1;
+                }
+
+                public TStat Current{
+                    get{
+                        switch(index){
+                            default:
+                            case 0: return characterStats.Health;
+                            case 1: return characterStats.Attack_Power;
+                        }
+                    }
+                }
+
+                object IEnumerator.Current => Current;
+
+                public void Dispose(){
+
+                }
+
+                //liczba statystyk: 2
+                public bool MoveNext(){
+                    index++;
+                    if(index > 1){
+                        index = -1;
+                    }
+                    return index != -1;
+                }
+
+                public void Reset(){
+
+                }
+
+
+            }
+
+        }
+
+        public class CharacterDamagedEventArgs : EventArgs
+        {
+            public int DamageReceived { get; set; }
+        }
+
+
+        public class GenericCharacter<TStat> : IDamageable<CharacterDamagedEventArgs>
+            where TStat : Stat, new()
+        {
+
+            private string characterName;
+            public GenericStats<GenericCharacter<TStat>, TStat> Stats {get;set;}
+            public event EventHandler<CharacterDamagedEventArgs> OnDamaged;
+
+            public GenericCharacter(string name){
+                this.characterName = name;
+                Stats = new GenericStats<GenericCharacter<TStat>, TStat> (this);
+            }
+
+            public void DealDamage(int amount){
+                Console.WriteLine($"{characterName} deals {amount} damage!");
+            }
+
+            public void ReceiveDamage(int damage){
+                OnDamaged?.Invoke(this, new CharacterDamagedEventArgs {DamageReceived = damage});
+                Console.WriteLine($"{characterName} recieved {damage} damage!\n{characterName} health ater damage: {Stats.Health.Value}");
+
+            }
+
+        }
 
 
 }

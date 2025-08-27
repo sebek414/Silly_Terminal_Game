@@ -7,36 +7,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using Characters;
 
-
 namespace Glowna{
 
     class Program{
 
+        public const int WARRIOR_DEFAULT_HEALTH = 70;
+        public const int MAGE_DEFAULT_HEALTH = 50;
+        public const int WRETCH_DEFAULT_HEALTH = 30;
+
+
         private static void Main(string[] args){
 
-            Stat healthbar = new Stat{Name = "health", Value = 50};
-            Stat attackbar = new Stat{Name = "Attack", Value = 18};
+            GenericCharacter<Stat> player = new GenericCharacter<Stat>("Jaś");
+            GenericCharacter<Stat> enemy = new GenericCharacter<Stat>("Małgosia");
 
-            Player player = new Player();
-            Enemy enemy = new Enemy();
-            PlayerStats playerStats = new  PlayerStats(player, healthbar, attackbar);
+            player.OnDamaged += (sender, e) =>
+            {
+                Console.WriteLine($"Event received: {e.DamageReceived} damage");
+            };
 
 
-            foreach (Stat stat in playerStats){
-                Console.WriteLine(stat.ToString());
+            player.Stats.Health.Value = WARRIOR_DEFAULT_HEALTH;
+            player.ReceiveDamage(6);
+
+
+            foreach (var stat in player.Stats)
+            {
+                Console.WriteLine(stat);
             }
 
-            player.GetDamage(enemy);
 
-            foreach (Stat stat in playerStats){
-                Console.WriteLine(stat.ToString());
-            }
-
-            player.GetDamage(enemy);
-
-            foreach (Stat stat in playerStats){
-                Console.WriteLine(stat.ToString());
-            }
 
         }
     }
